@@ -2,9 +2,7 @@
   name = "task"
   authors = [ "Brandon Thomas <bt@brand.io>", "Brandon Thomas <echelon@gmail.com>" ]
   categories = ["date-and-time"]
-  description = """
-    A lightweight task scheduling system. Version 0.0.0 is published as a placeholder.
-  """
+  description = "A lightweight task scheduling system."
   documentation = "https://docs.rs/task"
   keywords = [ "schedule", "scheduler", "task", "cron" ]
   license = "BSD-4-Clause"
@@ -13,8 +11,12 @@
   version = "0.0.0"
 
 [dependencies]
+  crontab = "0.1.*"
+  log = "0.3.*"
+  threadpool = "1.7.*"
 
 [dev-dependencies]
+  expectest = "0.9.*"
 
 [badges]
   travis-ci = { repository = "echelon/task.rs" }
