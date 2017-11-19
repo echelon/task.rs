@@ -2,9 +2,12 @@
 use threadpool::ThreadPool;
 use std::thread;
 use std::collections::HashMap;
+use std::collections::BinaryHeap;
 use std::time::Duration;
+use std::sync::Mutex;
 use crontab::Crontab;
 use std::sync::RwLock;
+use task::NextExecution;
 
 struct TaskSpec <'a> {
   schedule: Crontab,
@@ -17,6 +20,7 @@ pub struct Scheduler <'a> {
   /// The threadpool.
   threadpool: ThreadPool,
   tasks: HashMap<String, TaskSpec<'a>>,
+  next_schedule: Mutex<BinaryHeap<NextExecution>>,
 }
 
 impl <'a> Scheduler <'a> {
@@ -29,6 +33,7 @@ impl <'a> Scheduler <'a> {
     Scheduler {
       threadpool: ThreadPool::new(pool_size),
       tasks: HashMap::new(),
+      next_schedule: Mutex::new(BinaryHeap::new()),
     }
   }
 
@@ -36,18 +41,38 @@ impl <'a> Scheduler <'a> {
     self.schedule_loop();
   }*/
 
-  pub fn run_parallel(&self) {
-    /*match self.threadpool.read() {
-      Ok(lock) => {
-        lock.execute(|| {
-          self.schedule_loop();
-        });
+  // FIXME: Clean this up, fix error semantics.
+  fn pop_next_runnable_task(&self) -> Option<NextExecution> {
+    match self.next_schedule.lock() {
+      Err(_) => {
+        return None;
       },
-      _ => {},
-    }*/
+      Ok(mut next_schedule) => {
+        match next_schedule.peek() {
+          None => return None,
+          Some(task) => {
+            
+          }
+        }
+        return next_schedule.pop();
+      },
+    }
+  }
+
+  pub fn run_parallel(&self) {
     self.threadpool.execute(|| {
       loop {
-        // TODO
+        /*if let Some(task) = self.next_schedule.peek() {
+          if task.scheduled_time > current_time {
+            thread::sleep(Duration::from_secs(1))
+            continue;
+          }
+
+          let task  = self.next_schedule.pop();
+        }*/
+
+
+
         thread::sleep(Duration::from_secs(1))
       }
     })
