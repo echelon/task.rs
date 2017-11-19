@@ -7,7 +7,7 @@ use std::sync::RwLock;
 
 struct TaskSpec {
   schedule: Crontab,
-  //handle: Box<FnMut()>,
+  handle: Box<FnMut()>,
 }
 
 /// Scheduler manages scheduling of new jobs and maintains a threadpool
@@ -15,7 +15,7 @@ struct TaskSpec {
 pub struct Scheduler {
   /// The threadpool.
   threadpool: ThreadPool,
-  //tasks: Vec<TaskSpec>,
+  tasks: Vec<TaskSpec>,
 }
 
 impl Scheduler {
@@ -27,13 +27,13 @@ impl Scheduler {
   pub fn new(pool_size: usize) -> Scheduler {
     Scheduler {
       threadpool: ThreadPool::new(pool_size),
-      //tasks: Vec::new(),
+      tasks: Vec::new(),
     }
   }
 
-  pub fn run(&self) -> ! {
+  /*pub fn run(&self) -> ! {
     self.schedule_loop();
-  }
+  }*/
 
   pub fn run_parallel(&self) {
     /*match self.threadpool.read() {
