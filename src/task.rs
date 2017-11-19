@@ -6,16 +6,16 @@ use std::cmp::Eq;
 use std::cmp::PartialOrd;
 
 pub (crate) struct NextExecution {
-  time: Tm,
+  scheduled_time: Tm,
 }
 
 impl PartialEq for NextExecution {
   fn eq(&self, other: &Self) -> bool {
-    self.time.eq(&other.time)
+    self.scheduled_time.eq(&other.scheduled_time)
   }
 
   fn ne(&self, other: &Self) -> bool {
-    self.time.ne(&other.time)
+    self.scheduled_time.ne(&other.scheduled_time)
   }
 }
 
@@ -24,33 +24,33 @@ impl Eq for NextExecution {
 
 impl PartialOrd for NextExecution {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    self.time.partial_cmp(&other.time)
+    self.scheduled_time.partial_cmp(&other.scheduled_time)
   }
 
   fn lt(&self, other: &Self) -> bool {
-    self.time.lt(&other.time)
+    self.scheduled_time.lt(&other.scheduled_time)
   }
 
   fn le(&self, other: &Self) -> bool {
-    self.time.le(&other.time)
+    self.scheduled_time.le(&other.scheduled_time)
   }
 
   fn gt(&self, other: &Self) -> bool {
-    self.time.gt(&other.time)
+    self.scheduled_time.gt(&other.scheduled_time)
   }
 
   fn ge(&self, other: &Self) -> bool {
-    self.time.ge(&other.time)
+    self.scheduled_time.ge(&other.scheduled_time)
   }
 }
 
 impl Ord for NextExecution {
   fn cmp(&self, other: &Self) -> Ordering {
-    self.time.cmp(&other.time)
+    self.scheduled_time.cmp(&other.scheduled_time)
   }
 
   fn max(self, other: Self) -> Self where Self: Sized {
-    if self.time.gt(&other.time) {
+    if self.scheduled_time.gt(&other.scheduled_time) {
       self
     } else {
       other
@@ -58,7 +58,7 @@ impl Ord for NextExecution {
   }
 
   fn min(self, other: Self) -> Self where Self: Sized {
-    if self.time.le(&other.time) {
+    if self.scheduled_time.le(&other.scheduled_time) {
       self
     } else {
       other
