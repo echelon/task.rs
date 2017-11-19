@@ -19,8 +19,7 @@ impl PartialEq for NextExecution {
   }
 }
 
-impl Eq for NextExecution {
-}
+impl Eq for NextExecution {}
 
 impl PartialOrd for NextExecution {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
