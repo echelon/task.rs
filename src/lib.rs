@@ -20,5 +20,6 @@ extern crate log;
 extern crate threadpool;
 
 mod scheduler;
+mod task;
 
 pub use scheduler::Scheduler;
