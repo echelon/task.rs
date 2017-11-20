@@ -2,6 +2,7 @@
 use crontab::Crontab;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
@@ -31,6 +32,7 @@ impl <'a> Scheduler {
     }
   }
 
+  // TODO: Make lifetime bound on closure non-static.
   /// Schedule a new job for execution.
   pub fn schedule_job<F>(&mut self, name: &str, schedule: &str, function: F)
     where F: FnMut() + Send + Sync + 'static {
@@ -51,11 +53,11 @@ impl <'a> Scheduler {
   pub fn run(&mut self) -> ! {
     loop {
       // TODO: Schedule everything that is unscheduled.
+      self.reschedule_jobs();
 
       let tasks = self.tasks.clone();
 
       if let Some(next_task) = self.pop_next_runnable_task() {
-
         self.threadpool.execute(move || {
           let mut tasks2 = tasks.lock().unwrap(); // TODO
 
@@ -82,6 +84,30 @@ impl <'a> Scheduler {
     }
   }
 
+  fn reschedule_jobs(&mut self) {
+    let mut scheduled_jobs = HashSet::new();
+
+    for scheduled in self.next_schedule.iter() {
+      scheduled_jobs.insert(scheduled.name.clone());
+    }
+
+    // FIXME CLEANUP
+    if let Ok(tasks2) = self.tasks.lock() {
+      for (job_name, runnable_task) in tasks2.iter() {
+        if !scheduled_jobs.contains(job_name) {
+          let next = runnable_task.schedule.find_next_event().unwrap(); // FIXME
+
+          let next_execution = NextExecution {
+            scheduled_time: next,
+            name: job_name.to_string(),
+          };
+
+          self.next_schedule.push(next_execution);
+        }
+      }
+    }
+  }
+
   // FIXME: Clean this up, fix error semantics.
   fn pop_next_runnable_task(&mut self) -> Option<NextExecution> {
     match self.next_schedule.peek() {
@@ -90,7 +116,7 @@ impl <'a> Scheduler {
         // TODO: Handle timezones.
         // TODO: Fake clock injection for testing.
         let time = now();
-        if time < task.scheduled_time {
+        if time >= task.scheduled_time {
           return None;
         }
       }
