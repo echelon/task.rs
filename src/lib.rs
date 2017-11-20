@@ -16,6 +16,7 @@
 extern crate expectest;
 
 extern crate crontab;
+extern crate time;
 extern crate log;
 extern crate threadpool;
 

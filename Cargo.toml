@@ -14,6 +14,7 @@
   crontab = "0.1.*"
   log = "0.3.*"
   threadpool = "1.7.*"
+  time = "0.1.*"
 
 [dev-dependencies]
   expectest = "0.9.*"

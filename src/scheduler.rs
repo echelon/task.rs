@@ -2,13 +2,14 @@
 use crontab::Crontab;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 use task::NextExecution;
-use std::sync::Arc;
-use std::sync::Mutex;
 use task::RunnableTask;
 use threadpool::ThreadPool;
+use time::now;
 
 /// Scheduler manages scheduling of new jobs and maintains a threadpool
 /// upon which the scheduled jobs run.
@@ -30,6 +31,7 @@ impl <'a> Scheduler {
     }
   }
 
+  /// Schedule a new job for execution.
   pub fn schedule_job<F>(&mut self, name: &str, schedule: &str, function: F)
     where F: FnMut() + Send + Sync + 'static {
 
@@ -45,6 +47,7 @@ impl <'a> Scheduler {
     }
   }
 
+  /// Run the jobs.
   pub fn run(&mut self) -> ! {
     loop {
       // TODO: Schedule everything that is unscheduled.
@@ -84,7 +87,12 @@ impl <'a> Scheduler {
     match self.next_schedule.peek() {
       None => return None,
       Some(task) => {
-        // TODO - check time.
+        // TODO: Handle timezones.
+        // TODO: Fake clock injection for testing.
+        let time = now();
+        if time < task.scheduled_time {
+          return None;
+        }
       }
     }
     self.next_schedule.pop()
