@@ -89,8 +89,9 @@ impl <'a> Scheduler <'a> {
             self.next_schedule.push(next_execution);
 
 
-            let closure : FnMut(()) + 'a = task.handle;
-            closure(());
+            //let closure : FnMut(()) + 'a = &(*task.handle);
+            let closure = &(*task.handle);
+            closure();
 
           },
         }
