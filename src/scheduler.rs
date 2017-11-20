@@ -40,7 +40,9 @@ impl <'a> Scheduler {
       handle: Box::new(function)
     };
 
-    //self.tasks.insert(name.into(), taskspec); //TODO
+    if let Ok(mut t) = self.tasks.lock() {
+      t.insert(name.into(), taskspec); // FIXME CLEANUP
+    }
   }
 
   pub fn run(&mut self) -> ! {
@@ -52,7 +54,7 @@ impl <'a> Scheduler {
       if let Some(next_task) = self.pop_next_runnable_task() {
 
         self.threadpool.execute(move || {
-          let mut tasks2 = tasks.lock().unwrap();
+          let mut tasks2 = tasks.lock().unwrap(); // TODO
 
           match tasks2.get_mut(&next_task.name) {
             None => { /* This should be unreachable! */ },
