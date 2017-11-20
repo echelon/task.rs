@@ -57,11 +57,13 @@ impl <'a> Scheduler {
 
       let tasks = self.tasks.clone();
 
-      if let Some(next_task) = self.pop_next_runnable_task() {
-        self.threadpool.execute(move || {
-          let mut tasks2 = tasks.lock().unwrap(); // TODO
+      while let Some(next_task) = self.pop_next_runnable_task() {
+        let tasks2 = tasks.clone();
 
-          match tasks2.get_mut(&next_task.name) {
+        self.threadpool.execute(move || {
+          let mut tasks3 = tasks2.lock().unwrap(); // TODO
+
+          match tasks3.get_mut(&next_task.name) {
             None => { /* This should be unreachable! */ },
             Some(task) => {
               let next = task.schedule.find_next_event().unwrap(); // FIXME
@@ -95,6 +97,7 @@ impl <'a> Scheduler {
     if let Ok(tasks2) = self.tasks.lock() {
       for (job_name, runnable_task) in tasks2.iter() {
         if !scheduled_jobs.contains(job_name) {
+          //println!("need to reschedule: {} {:?}", job_name, runnable_task.schedule.schedule);
           let next = runnable_task.schedule.find_next_event().unwrap(); // FIXME
 
           let next_execution = NextExecution {
@@ -110,17 +113,29 @@ impl <'a> Scheduler {
 
   // FIXME: Clean this up, fix error semantics.
   fn pop_next_runnable_task(&mut self) -> Option<NextExecution> {
+    //println!("number of tasks: {}", self.next_schedule.len());
+
+    for schedule in self.next_schedule.iter() {
+      //println!("Sched: {}\t{}", schedule.name, schedule.scheduled_time.rfc3339());
+    }
+
     match self.next_schedule.peek() {
       None => return None,
       Some(task) => {
         // TODO: Handle timezones.
         // TODO: Fake clock injection for testing.
         let time = now();
-        if time >= task.scheduled_time {
+        //println!("Now: {:?}", time);
+        //println!("Scheduled time: {:?}\n", task.scheduled_time);
+        if time < task.scheduled_time {
           return None;
+        } else {
+          println!("Now: \t\t{}", time.rfc3339());
+          println!("Ready for: {}\t{}", task.name, task.scheduled_time.rfc3339());
         }
       }
     }
+    println!("Have a scheduled job!");
     self.next_schedule.pop()
   }
 }
