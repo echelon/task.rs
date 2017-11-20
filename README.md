@@ -3,6 +3,8 @@ task.rs
 A lightweight periodic task scheduler. Does not rely on Rust nightly features.
 Currently only supports minute-level scheduling of tasks.
 
+This is not ready for wide usage.
+
 TODO
 ----
 - Handle timezones appropriately
@@ -10,7 +12,7 @@ TODO
 - Ability to prevent job execution from stacking (won't reschedule until job completes)
 - Tests!
 - Better API
-- Clean up code and make safer
+- Clean up code (esp. better concurrency) and make safer
 
 License
 -------

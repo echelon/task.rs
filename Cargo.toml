@@ -16,8 +16,5 @@
   threadpool = "1.7.*"
   time = "0.1.*"
 
-[dev-dependencies]
-  expectest = "0.9.*"
-
 [badges]
   travis-ci = { repository = "echelon/task.rs" }

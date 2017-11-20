@@ -94,6 +94,7 @@ impl <'a> Scheduler {
         match tasks2.get_mut(&next_task.name) {
           None => { /* This should be unreachable! */ },
           Some(task) => {
+            info!("Running task: {}", next_task.name);
             (*task.handle)();
           },
         }

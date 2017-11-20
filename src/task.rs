@@ -1,15 +1,15 @@
 use crontab::Crontab;
 use crontab::Tm;
-use std::cmp::Ordering;
-use std::cmp::Ord;
-use std::cmp::PartialEq;
 use std::cmp::Eq;
+use std::cmp::Ord;
+use std::cmp::Ordering;
+use std::cmp::PartialEq;
 use std::cmp::PartialOrd;
 
 /// A task with a schedule.
 pub (crate) struct RunnableTask {
   pub schedule: Crontab,
-  pub handle: Box<FnMut() + Send + Sync>,
+  pub handle: Box<FnMut() + Send + Sync>, // TODO: Drop 'Sync' ?
 }
 
 /// The next execution of a named task.
