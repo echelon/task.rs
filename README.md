@@ -5,6 +5,7 @@ Currently only supports minute-level scheduling of tasks.
 
 TODO
 ----
+- Handle timezones appropriately
 - Support for second-resolution cron schedules
 - Ability to prevent job execution from stacking (won't reschedule until job completes)
 - Tests!

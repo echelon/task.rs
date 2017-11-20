@@ -16,7 +16,7 @@ use time::now;
 /// upon which the scheduled jobs run.
 pub struct Scheduler {
   /// The threadpool.
-  threadpool: ThreadPool,
+  thread_pool: ThreadPool,
   tasks: Arc<Mutex<HashMap<String, RunnableTask>>>,
   next_schedule: BinaryHeap<NextExecution>,
 }
@@ -26,7 +26,7 @@ impl <'a> Scheduler {
   /// Create a new scheduler.
   pub fn new(pool_size: usize) -> Scheduler {
     Scheduler {
-      threadpool: ThreadPool::new(pool_size),
+      thread_pool: ThreadPool::new(pool_size),
       tasks: Arc::new(Mutex::new(HashMap::new())),
       next_schedule: BinaryHeap::new(),
     }
@@ -53,7 +53,7 @@ impl <'a> Scheduler {
   pub fn run(&mut self) -> ! {
     loop {
       self.schedule_jobs();
-      self.run_applicable_jobs();
+      self.execute_applicable_jobs();
       thread::sleep(Duration::from_secs(1));
     }
   }
@@ -67,8 +67,8 @@ impl <'a> Scheduler {
     }
 
     // FIXME CLEANUP
-    if let Ok(tasks2) = self.tasks.lock() {
-      for (job_name, runnable_task) in tasks2.iter() {
+    if let Ok(tasks) = self.tasks.lock() {
+      for (job_name, runnable_task) in tasks.iter() {
         if !already_scheduled_jobs.contains(job_name) {
           let next = runnable_task.schedule.find_next_event().unwrap(); // FIXME
 
@@ -83,20 +83,16 @@ impl <'a> Scheduler {
     }
   }
 
-  fn run_applicable_jobs(&mut self) {
-    let tasks = self.tasks.clone();
-
+  fn execute_applicable_jobs(&mut self) {
     while let Some(next_task) = self.pop_next_runnable_task() {
-      let tasks2 = tasks.clone();
+      let tasks = self.tasks.clone();
 
-      self.threadpool.execute(move || {
-        let mut tasks3 = tasks2.lock().unwrap(); // TODO
+      self.thread_pool.execute(move || {
+        let mut tasks2 = tasks.lock().unwrap(); // TODO
 
-        match tasks3.get_mut(&next_task.name) {
+        match tasks2.get_mut(&next_task.name) {
           None => { /* This should be unreachable! */ },
           Some(task) => {
-            let next = task.schedule.find_next_event().unwrap(); // FIXME
-
             (*task.handle)();
           },
         }
@@ -110,7 +106,6 @@ impl <'a> Scheduler {
       None => return None,
       Some(task) => {
         // TODO: Handle timezones.
-        // TODO: Fake clock injection for testing.
         let time = now();
         if time < task.scheduled_time {
           return None;
