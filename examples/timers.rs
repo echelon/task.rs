@@ -10,17 +10,33 @@ use time::now;
 pub fn main() {
   let mut scheduler = Scheduler::new(4);
 
-  //scheduler.schedule_job("Every two minutes", "* * * * *", || {
-  scheduler.schedule_job("Every 2 minutes", "0,2,4,6,8,10,12,14,16,18,20,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58 * * * *", || {
-    let time = now();
-    println!("Executes two minutes: {}", time.rfc3339());
-  });
-
   scheduler.schedule_job("Every 1 minutes", "* * * * *", || {
-    let time = now();
-    println!("Executes every minute: {}", time.rfc3339());
+    println!("Executes every minute: {}", now().rfc3339());
   });
 
-  println!("Running scheduler example. {}", now().rfc3339());
+  scheduler.schedule_job("Every 2 minutes", &every_n_minutes(2), || {
+    println!("Executes two minutes: {}", now().rfc3339());
+  });
+
+  scheduler.schedule_job("Every 3 minutes", &every_n_minutes(3), || {
+    println!("Executes three minutes: {}", now().rfc3339());
+  });
+
+  scheduler.schedule_job("Every 5 minutes", &every_n_minutes(5), || {
+    println!("Executes five minutes: {}", now().rfc3339());
+  });
+
+  println!("Running scheduler example: {}", now().rfc3339());
   scheduler.run();
+}
+
+fn every_n_minutes(divisor: usize) -> String {
+  let mut minutes = Vec::new();
+  for i in 0..60 {
+    if i % divisor == 0 {
+      minutes.push(i.to_string());
+    }
+  }
+
+  minutes.join(",") + " * * * *"
 }
