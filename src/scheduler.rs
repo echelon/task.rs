@@ -67,18 +67,19 @@ impl <'a> Scheduler {
     }
 
     // FIXME CLEANUP
-    if let Ok(tasks) = self.tasks.lock() {
-      for (job_name, runnable_task) in tasks.iter() {
-        if !already_scheduled_jobs.contains(job_name) {
-          let next = runnable_task.schedule.find_next_event().unwrap(); // FIXME
+    let tasks = self.tasks.lock().expect("Mutex was poisoned.");
 
-          let next_execution = NextExecution {
-            scheduled_time: next,
-            name: job_name.to_string(),
-          };
+    for (job_name, runnable_task) in tasks.iter() {
+      if !already_scheduled_jobs.contains(job_name) {
+        let next = runnable_task.schedule.find_next_event()
+            .expect("Task is not schedulable.");
 
-          self.next_schedule.push(next_execution);
-        }
+        let next_execution = NextExecution {
+          scheduled_time: next,
+          name: job_name.to_string(),
+        };
+
+        self.next_schedule.push(next_execution);
       }
     }
   }
@@ -88,7 +89,7 @@ impl <'a> Scheduler {
       let tasks = self.tasks.clone();
 
       self.thread_pool.execute(move || {
-        let mut tasks2 = tasks.lock().unwrap(); // TODO
+        let mut tasks2 = tasks.lock().expect("Mutex was poisoned.");
 
         match tasks2.get_mut(&next_task.name) {
           None => { /* This should be unreachable! */ },
@@ -100,13 +101,11 @@ impl <'a> Scheduler {
     }
   }
 
-  // FIXME: Clean this up, fix error semantics.
   fn pop_next_runnable_task(&mut self) -> Option<NextExecution> {
     match self.next_schedule.peek() {
       None => return None,
       Some(task) => {
-        // TODO: Handle timezones.
-        let time = now();
+        let time = now(); // TODO: Handle timezones.
         if time < task.scheduled_time {
           return None;
         }
