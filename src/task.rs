@@ -7,9 +7,9 @@ use std::cmp::Eq;
 use std::cmp::PartialOrd;
 
 /// A task with a schedule.
-pub (crate) struct RunnableTask<'a> {
+pub (crate) struct RunnableTask {
   pub schedule: Crontab,
-  pub handle: Box<FnMut() + 'a>,
+  pub handle: Box<FnMut() + Send + Sync>,
 }
 
 /// The next execution of a named task.

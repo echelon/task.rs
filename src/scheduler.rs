@@ -5,66 +5,75 @@ use std::collections::HashMap;
 use std::thread;
 use std::time::Duration;
 use task::NextExecution;
+use std::sync::Arc;
+use std::sync::Mutex;
 use task::RunnableTask;
 use threadpool::ThreadPool;
 
 /// Scheduler manages scheduling of new jobs and maintains a threadpool
 /// upon which the scheduled jobs run.
-pub struct Scheduler <'a> {
+pub struct Scheduler {
   /// The threadpool.
   threadpool: ThreadPool,
-  tasks: HashMap<String, RunnableTask<'a>>,
+  tasks: Arc<Mutex<HashMap<String, RunnableTask>>>,
   next_schedule: BinaryHeap<NextExecution>,
 }
 
-impl <'a> Scheduler <'a> {
+impl <'a> Scheduler {
   // TODO: Alternate CTOR to share an externally created thread pool.
   /// Create a new scheduler.
-  pub fn new(pool_size: usize) -> Scheduler<'a> {
+  pub fn new(pool_size: usize) -> Scheduler {
     Scheduler {
       threadpool: ThreadPool::new(pool_size),
-      tasks: HashMap::new(),
+      tasks: Arc::new(Mutex::new(HashMap::new())),
       next_schedule: BinaryHeap::new(),
     }
   }
 
   pub fn schedule_job<F>(&mut self, name: &str, schedule: &str, function: F)
-    where F: FnMut() + 'a {
+    where F: FnMut() + Send + Sync + 'static {
 
-    let crontab = Crontab::parse(schedule).ok().unwrap();
+    let crontab = Crontab::parse(schedule).ok().unwrap(); // FIXME
 
     let taskspec = RunnableTask {
       schedule: crontab,
       handle: Box::new(function)
     };
-    self.tasks.insert(name.into(), taskspec);
+
+    //self.tasks.insert(name.into(), taskspec); //TODO
   }
 
   pub fn run(&mut self) -> ! {
     loop {
       // TODO: Schedule everything that is unscheduled.
 
+      let tasks = self.tasks.clone();
+
       if let Some(next_task) = self.pop_next_runnable_task() {
 
-        match self.tasks.get_mut(&next_task.name) {
-          None => { /* This should be unreachable! */ },
-          Some(task) => {
-            let next = task.schedule.find_next_event().unwrap(); // FIXME
+        self.threadpool.execute(move || {
+          let mut tasks2 = tasks.lock().unwrap();
 
-            // Reschedule
-            let next_execution = NextExecution {
-              scheduled_time: next,
-              name: next_task.name.to_string(),
-            };
+          match tasks2.get_mut(&next_task.name) {
+            None => { /* This should be unreachable! */ },
+            Some(task) => {
+              let next = task.schedule.find_next_event().unwrap(); // FIXME
 
-            self.next_schedule.push(next_execution);
+              // Reschedule
+              let next_execution = NextExecution {
+                scheduled_time: next,
+                name: next_task.name.to_string(),
+              };
 
-            (*task.handle)();
-          },
-        }
+              //self.next_schedule.push(next_execution);
+
+              (*task.handle)();
+            },
+          }
+        });
       }
 
-      thread::sleep(Duration::from_secs(1))
+      thread::sleep(Duration::from_secs(1));
     }
   }
 
