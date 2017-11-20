@@ -43,22 +43,14 @@ impl <'a> Scheduler <'a> {
   }*/
 
   // FIXME: Clean this up, fix error semantics.
-  fn pop_next_runnable_task(&self) -> Option<NextExecution> {
-    /*match self.next_schedule.lock() {
-      Err(_) => {
-        return None;
-      },
-      Ok(mut next_schedule) => {
-        match next_schedule.peek() {
-          None => return None,
-          Some(task) => {
-
-          }
-        }
-        return next_schedule.pop();
-      },
-    }*/
-    None
+  fn pop_next_runnable_task(&mut self) -> Option<NextExecution> {
+    match self.next_schedule.peek() {
+      None => return None,
+      Some(task) => {
+        // TODO - check time.
+      }
+    }
+    self.next_schedule.pop()
   }
 
   // TODO/FIXME: Oh god, this is rough
@@ -76,6 +68,16 @@ impl <'a> Scheduler <'a> {
         }
         return next_schedule.pop();
       },
+    }
+  }
+
+  pub fn run(&mut self) -> ! {
+    loop {
+      if let Some(next_task) = self.pop_next_runnable_task() {
+
+      }
+
+      thread::sleep(Duration::from_secs(1))
     }
   }
 
