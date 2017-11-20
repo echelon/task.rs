@@ -12,7 +12,7 @@ use threadpool::ThreadPool;
 
 struct TaskSpec <'a> {
   schedule: Crontab,
-  handle: Box<FnMut() + 'a + Send + Sync>,
+  handle: Box<FnMut() + 'a>,
 }
 
 /// Scheduler manages scheduling of new jobs and maintains a threadpool
@@ -20,8 +20,8 @@ struct TaskSpec <'a> {
 pub struct Scheduler <'a> {
   /// The threadpool.
   threadpool: ThreadPool,
-  tasks: Arc<HashMap<String, TaskSpec<'a>>>,
-  next_schedule: Arc<Mutex<BinaryHeap<NextExecution>>>,
+  tasks: HashMap<String, TaskSpec<'a>>,
+  next_schedule: BinaryHeap<NextExecution>,
 }
 
 impl <'a> Scheduler <'a> {
@@ -33,8 +33,8 @@ impl <'a> Scheduler <'a> {
   pub fn new(pool_size: usize) -> Scheduler<'a> {
     Scheduler {
       threadpool: ThreadPool::new(pool_size),
-      tasks: Arc::new(HashMap::new()),
-      next_schedule: Arc::new(Mutex::new(BinaryHeap::new())),
+      tasks: HashMap::new(),
+      next_schedule: BinaryHeap::new(),
     }
   }
 
@@ -79,7 +79,7 @@ impl <'a> Scheduler <'a> {
     }
   }
 
-  pub fn run_parallel(&self) {
+  /*pub fn run_parallel(&self) {
     let next_schedules = self.next_schedule.clone();
     let tasks : Arc<HashMap<String, TaskSpec<'a>>> = self.tasks.clone();
 
@@ -122,10 +122,10 @@ impl <'a> Scheduler <'a> {
         thread::sleep(Duration::from_secs(1))
       }
     })
-  }
+  }*/
 
   fn schedule_job<F>(&mut self, name: &str, schedule: &str, function: F)
-      where F: FnMut() + 'a + Send + Sync {
+      where F: FnMut() + 'a {
 
     let crontab = Crontab::parse(schedule).ok().unwrap();
 
