@@ -33,39 +33,35 @@ impl Eq for NextExecution {}
 // Orders are reversed so that BinaryHeap is a min-heap.
 impl PartialOrd for NextExecution {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    self.scheduled_time.partial_cmp(&other.scheduled_time).map(|ordering| {
-      match ordering {
-        Ordering::Equal => Ordering::Equal,
-        Ordering::Greater => Ordering::Less,
-        Ordering::Less => Ordering::Greater,
-      }
-    })
+    self.scheduled_time.partial_cmp(&other.scheduled_time)
+        .map(|order| order.reverse())
   }
 
   fn lt(&self, other: &Self) -> bool {
-    !self.scheduled_time.lt(&other.scheduled_time)
+    !self.scheduled_time.lt(&other.scheduled_time) // Reversed
   }
 
   fn le(&self, other: &Self) -> bool {
-    !self.scheduled_time.le(&other.scheduled_time)
+    !self.scheduled_time.le(&other.scheduled_time) // Reversed
   }
 
   fn gt(&self, other: &Self) -> bool {
-    !self.scheduled_time.gt(&other.scheduled_time)
+    !self.scheduled_time.gt(&other.scheduled_time) // Reversed
   }
 
   fn ge(&self, other: &Self) -> bool {
-    !self.scheduled_time.ge(&other.scheduled_time)
+    !self.scheduled_time.ge(&other.scheduled_time) // Reversed
   }
 }
 
 // Orders are reversed so that BinaryHeap is a min-heap.
 impl Ord for NextExecution {
   fn cmp(&self, other: &Self) -> Ordering {
-    self.scheduled_time.cmp(&other.scheduled_time)
+    self.scheduled_time.cmp(&other.scheduled_time).reverse()
   }
 
   fn max(self, other: Self) -> Self where Self: Sized {
+    // Reversed
     if self.scheduled_time.gt(&other.scheduled_time) {
       other
     } else {
@@ -74,6 +70,7 @@ impl Ord for NextExecution {
   }
 
   fn min(self, other: Self) -> Self where Self: Sized {
+    // Reversed
     if self.scheduled_time.le(&other.scheduled_time) {
       other
     } else {
