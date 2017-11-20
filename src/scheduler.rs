@@ -52,43 +52,24 @@ impl <'a> Scheduler {
   /// Run the jobs.
   pub fn run(&mut self) -> ! {
     loop {
-      self.reschedule_jobs();
-
-      let tasks = self.tasks.clone();
-
-      while let Some(next_task) = self.pop_next_runnable_task() {
-        let tasks2 = tasks.clone();
-
-        self.threadpool.execute(move || {
-          let mut tasks3 = tasks2.lock().unwrap(); // TODO
-
-          match tasks3.get_mut(&next_task.name) {
-            None => { /* This should be unreachable! */ },
-            Some(task) => {
-              let next = task.schedule.find_next_event().unwrap(); // FIXME
-
-              (*task.handle)();
-            },
-          }
-        });
-      }
-
+      self.schedule_jobs();
+      self.run_applicable_jobs();
       thread::sleep(Duration::from_secs(1));
     }
   }
 
-  fn reschedule_jobs(&mut self) {
-    // FIXME: inefficient
-    let mut scheduled_jobs = HashSet::new();
+  // FIXME: inefficient
+  fn schedule_jobs(&mut self) {
+    let mut already_scheduled_jobs = HashSet::new();
 
     for scheduled in self.next_schedule.iter() {
-      scheduled_jobs.insert(scheduled.name.clone());
+      already_scheduled_jobs.insert(scheduled.name.clone());
     }
 
     // FIXME CLEANUP
     if let Ok(tasks2) = self.tasks.lock() {
       for (job_name, runnable_task) in tasks2.iter() {
-        if !scheduled_jobs.contains(job_name) {
+        if !already_scheduled_jobs.contains(job_name) {
           let next = runnable_task.schedule.find_next_event().unwrap(); // FIXME
 
           let next_execution = NextExecution {
@@ -99,6 +80,27 @@ impl <'a> Scheduler {
           self.next_schedule.push(next_execution);
         }
       }
+    }
+  }
+
+  fn run_applicable_jobs(&mut self) {
+    let tasks = self.tasks.clone();
+
+    while let Some(next_task) = self.pop_next_runnable_task() {
+      let tasks2 = tasks.clone();
+
+      self.threadpool.execute(move || {
+        let mut tasks3 = tasks2.lock().unwrap(); // TODO
+
+        match tasks3.get_mut(&next_task.name) {
+          None => { /* This should be unreachable! */ },
+          Some(task) => {
+            let next = task.schedule.find_next_event().unwrap(); // FIXME
+
+            (*task.handle)();
+          },
+        }
+      });
     }
   }
 
