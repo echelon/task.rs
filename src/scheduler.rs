@@ -75,6 +75,25 @@ impl <'a> Scheduler <'a> {
     loop {
       if let Some(next_task) = self.pop_next_runnable_task() {
 
+        match self.tasks.get(&next_task.name) {
+          None => { /* This should be unreachable! */ },
+          Some(task) => {
+            let next = task.schedule.find_next_event().unwrap(); // FIXME
+
+            // Reschedule
+            let next_execution = NextExecution {
+              scheduled_time: next,
+              name: next_task.name.to_string(),
+            };
+
+            self.next_schedule.push(next_execution);
+
+
+            let closure : FnMut(()) + 'a = task.handle;
+            closure(());
+
+          },
+        }
       }
 
       thread::sleep(Duration::from_secs(1))
