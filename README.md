@@ -1,6 +1,15 @@
 task.rs
 =======
-A lightweight task scheduler. Does not rely on Rust nightly features.
+A lightweight periodic task scheduler. Does not rely on Rust nightly features.
+Currently only supports minute-level scheduling of tasks.
+
+TODO
+----
+- Support for second-resolution cron schedules
+- Ability to prevent job execution from stacking (won't reschedule until job completes)
+- Tests!
+- Better API
+- Clean up code and make safer
 
 License
 -------
@@ -40,4 +49,3 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
-

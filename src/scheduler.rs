@@ -52,7 +52,6 @@ impl <'a> Scheduler {
   /// Run the jobs.
   pub fn run(&mut self) -> ! {
     loop {
-      // TODO: Schedule everything that is unscheduled.
       self.reschedule_jobs();
 
       let tasks = self.tasks.clone();
@@ -68,14 +67,6 @@ impl <'a> Scheduler {
             Some(task) => {
               let next = task.schedule.find_next_event().unwrap(); // FIXME
 
-              // Reschedule
-              let next_execution = NextExecution {
-                scheduled_time: next,
-                name: next_task.name.to_string(),
-              };
-
-              //self.next_schedule.push(next_execution);
-
               (*task.handle)();
             },
           }
@@ -87,6 +78,7 @@ impl <'a> Scheduler {
   }
 
   fn reschedule_jobs(&mut self) {
+    // FIXME: inefficient
     let mut scheduled_jobs = HashSet::new();
 
     for scheduled in self.next_schedule.iter() {
