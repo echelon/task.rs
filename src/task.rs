@@ -6,8 +6,8 @@ use std::cmp::Eq;
 use std::cmp::PartialOrd;
 
 pub (crate) struct NextExecution {
-  scheduled_time: Tm,
-  name: String,
+  pub scheduled_time: Tm,
+  pub name: String,
 }
 
 impl PartialEq for NextExecution {
