@@ -8,7 +8,7 @@
   license = "BSD-4-Clause"
   readme = "README.md"
   repository = "https://github.com/echelon/task.rs"
-  version = "0.0.0"
+  version = "0.0.1"
 
 [dependencies]
   crontab = "0.1.*"
